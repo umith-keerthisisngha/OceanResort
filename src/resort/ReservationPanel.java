@@ -14,6 +14,7 @@ public class ReservationPanel extends JPanel {
     private HashMap<String, Reservation> reservations;
     private Runnable saveCallback;
     private java.util.function.BiConsumer<String, Boolean> statusCallback;
+    private OceanResortSystem mainSystem;
     
     public ReservationPanel(HashMap<String, Reservation> reservations, 
                            Runnable saveCallback,
@@ -124,7 +125,16 @@ public class ReservationPanel extends JPanel {
             }
             
             // Check for duplicate ID
-            if(reservations.containsKey(resNo.getText().trim())) {
+            boolean exists = false;
+            try {
+                // Try database first
+                exists = DatabaseHandler.reservationExists(resNo.getText().trim());
+            } catch (Exception ex) {
+                // Fallback to local check
+                exists = reservations.containsKey(resNo.getText().trim());
+            }
+            
+            if(exists) {
                 statusCallback.accept("Reservation ID already exists! Please use a unique ID.", true);
                 resNo.requestFocus();
                 resNo.setBorder(BorderFactory.createCompoundBorder(
@@ -152,13 +162,29 @@ public class ReservationPanel extends JPanel {
                 out
             );
             
-            reservations.put(r.getResNo(), r);
-            saveCallback.run();
+            // Try to save to database first
+            boolean saved = false;
+            try {
+                saved = DatabaseHandler.saveReservation(r);
+                if(saved) {
+                    reservations.put(r.getResNo(), r);
+                    saveCallback.run();
+                    statusCallback.accept("✓ Reservation Saved to Database! ID: " + r.getResNo() + " | Guest: " + r.getName() + " | Cost: " + String.format("%,d", r.getTotalCost()) + " LKR", false);
+                }
+            } catch (Exception ex) {
+                // Database not available, just add to memory
+                reservations.put(r.getResNo(), r);
+                saveCallback.run();
+                statusCallback.accept("✓ Reservation Saved! ID: " + r.getResNo() + " | Guest: " + r.getName() + " | Cost: " + String.format("%,d", r.getTotalCost()) + " LKR", false);
+                saved = true;
+            }
             
-            statusCallback.accept("✓ Reservation Saved! ID: " + r.getResNo() + " | Guest: " + r.getName() + " | Cost: " + String.format("%,d", r.getTotalCost()) + " LKR", false);
-            
-            // Clear form
-            clearBtn.doClick();
+            if(saved) {
+                // Clear form
+                clearBtn.doClick();
+            } else {
+                statusCallback.accept("Failed to save reservation!", true);
+            }
         });
 
         buttonPanel.add(clearBtn);

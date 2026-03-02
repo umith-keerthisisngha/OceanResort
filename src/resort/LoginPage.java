@@ -8,9 +8,9 @@ import resort.CustomComponents.*;
 
 public class LoginPage extends JFrame {
     
-    private OceanResortSystemMain mainSystem;
+    private OceanResortSystem mainSystem;
     
-    public LoginPage(OceanResortSystemMain mainSystem) {
+    public LoginPage(OceanResortSystem mainSystem) {
         this.mainSystem = mainSystem;
         setupUI();
     }
@@ -34,7 +34,8 @@ public class LoginPage extends JFrame {
             }
         };
         brandPanel.setLayout(new GridBagLayout());
-        JLabel brandLabel = new JLabel("<html><center><h1 style='color:white; font-size:40px;'>🌊 OCEAN<br>RESORT</h1><p style='color:#ccc; font-size:16px;'>Management System v1.0</p></center></html>");
+        String versionText = mainSystem.isUsingDatabase() ? "Database Edition" : "Standalone Edition";
+        JLabel brandLabel = new JLabel("<html><center><h1 style='color:white; font-size:40px;'>🌊 OCEAN<br>RESORT</h1><p style='color:#ccc; font-size:16px;'>Management System - " + versionText + "</p></center></html>");
         brandPanel.add(brandLabel);
 
         JPanel loginPanel = new JPanel(new GridBagLayout());
@@ -79,7 +80,20 @@ public class LoginPage extends JFrame {
 
         // Enter key support
         ActionListener loginAction = e -> {
-            if (userField.getText().equals("admin") && new String(passField.getPassword()).equals("123")) {
+            String username = userField.getText();
+            String password = new String(passField.getPassword());
+            
+            boolean authenticated = false;
+            
+            // Try database authentication first if available
+            if(mainSystem.isUsingDatabase()) {
+                authenticated = DatabaseHandler.authenticateUser(username, password);
+            } else {
+                // Fallback to hardcoded authentication
+                authenticated = username.equals("admin") && password.equals("123");
+            }
+            
+            if (authenticated) {
                 dispose();
                 mainSystem.showDashboard();
             } else {
@@ -87,6 +101,12 @@ public class LoginPage extends JFrame {
                     BorderFactory.createLineBorder(Constants.DANGER_COLOR, 2), 
                     BorderFactory.createEmptyBorder(5, 10, 5, 10)));
                 passField.setBorder(userField.getBorder());
+                
+                JOptionPane.showMessageDialog(this, 
+                    "Invalid username or password!", 
+                    "Login Failed", 
+                    JOptionPane.ERROR_MESSAGE);
+                
                 Timer timer = new Timer(2000, evt -> {
                     userField.setBorder(BorderFactory.createCompoundBorder(
                         BorderFactory.createLineBorder(new Color(200, 200, 200)), 
