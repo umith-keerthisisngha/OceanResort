@@ -187,7 +187,7 @@ java  -cp ".:mysql-connector-j-9.x.x.jar" resort.OceanResortSystem
 | Username | staff     |
 | Password | staff123  |
 
-> ⚠️ Change these passwords before deploying to production!
+
 
 ---
 
