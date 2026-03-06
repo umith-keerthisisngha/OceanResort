@@ -352,5 +352,5 @@ Login with `admin` / `123` (Admin) or `staff` / `staff123` (Staff) and enjoy you
 
 ---
 
-**Version:** 3.0 — Role-Based Database Edition  
+**Version:** 1.0  
 **Last Updated:** 2026
