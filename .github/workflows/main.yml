@@ -1,0 +1,27 @@
+name: CI – Build & Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Java JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Compile Java source files
+        run: javac -cp ".:lib/*" resort/*.java
+
+      - name: Run build success message
+        run: echo "✓ Build passed – Ocean Resort Management System"
