@@ -1,5 +1,5 @@
 # 🌊 Ocean Resort Management System
-## Database-Integrated Edition with Role-Based Login
+
 
 ---
 
